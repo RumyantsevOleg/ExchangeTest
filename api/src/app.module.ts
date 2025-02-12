@@ -1,10 +1,10 @@
-import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { BinanceModule } from './exchanges/binance/binance.module';
+import { Module } from "@nestjs/common";
+import { AppController } from "./app.controller";
+import { AppService } from "./app.service";
+import { ExchangeModule } from "./exchanges/exchange.module";
 
 @Module({
-  imports: [BinanceModule],
+  imports: [ExchangeModule],
   controllers: [AppController],
   providers: [AppService],
 })

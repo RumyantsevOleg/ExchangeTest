@@ -2,10 +2,11 @@ import { Injectable } from "@nestjs/common";
 import { EstimateRequestDto, RateResponseDto } from "./app.dto";
 import { BinanceService } from "./exchanges/binance/binance.service";
 import { CurrencyNames, ExchangeNames } from "./common/constants";
+import { ExchangeFacadeService } from "./exchanges/exchange.service";
 
 @Injectable()
 export class AppService {
-  constructor(private binanceService: BinanceService) {}
+  constructor(private exchangeFacadeService: ExchangeFacadeService) {}
 
   public async getRates(): Promise<RateResponseDto[]> {
     return [
@@ -17,6 +18,6 @@ export class AppService {
   }
 
   public async estimate(payload: EstimateRequestDto): Promise<RateResponseDto> {
-    return await this.binanceService.estimate(payload);
+    return await this.exchangeFacadeService.estimate(payload);
   }
 }

@@ -31,7 +31,7 @@ export class BinanceService implements IExchange {
   }
 
   public async estimate({
-    inputAmount,
+    inputAmount = 1,
     inputCurrency,
     outputCurrency,
   }: EstimateRequest): Promise<EstimateResponse> {
