@@ -1,15 +1,17 @@
+import { CurrencyNames, ExchangeNames } from "./common/constants";
+
 export class EstimateRequestDto {
+  inputCurrency: CurrencyNames;
+  outputCurrency: CurrencyNames;
   inputAmount: number;
-  inputCurrency: string; // TODO should be enum?;
-  outputCurrency: string; // TODO should be enum?;
 }
 
 export class GetRatesRequestDto {
-  baseCurrency: string;
-  quoteCurrency: string;
+  baseCurrency: CurrencyNames;
+  quoteCurrency: CurrencyNames;
 }
 
 export class RateResponseDto {
-  exchangeName: string;
-  outputAmount: string;
+  exchangeName: ExchangeNames;
+  outputAmount: number;
 }

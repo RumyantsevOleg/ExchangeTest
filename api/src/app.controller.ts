@@ -17,7 +17,7 @@ export class AppController {
   public estimate(
     @TypedBody() estimateDto: EstimateRequestDto,
   ): Promise<RateResponseDto> {
-    return this.appService.estimate();
+    return this.appService.estimate(estimateDto);
   }
 
   @TypedRoute.Get("/rates")
