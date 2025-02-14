@@ -24,6 +24,10 @@ export class AppController {
   public getRatesDto(
     @TypedQuery() getRatesDto: GetRatesRequestDto,
   ): Promise<RateResponseDto[]> {
-    return this.appService.getRates();
+    return this.appService.getRates({
+      inputAmount: 1,
+      inputCurrency: getRatesDto.baseCurrency,
+      outputCurrency: getRatesDto.quoteCurrency,
+    });
   }
 }

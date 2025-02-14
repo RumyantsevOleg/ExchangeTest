@@ -18,6 +18,7 @@ export class BinanceService extends BaseExchange {
     try {
       const symbol = `${inputCurrency}${outputCurrency}`;
 
+      // Todo reverse request for symbol
       const response = await fetch(
         `https://api.binance.com/api/v3/trades?symbol=${symbol}&limit=1`,
       );

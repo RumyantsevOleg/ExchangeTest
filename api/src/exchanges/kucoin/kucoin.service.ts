@@ -14,7 +14,6 @@ export class KucoinService extends BaseExchange {
   }> {
     try {
       const symbol = `${payload.inputCurrency}-${payload.outputCurrency}`;
-      console.log(symbol);
 
       const response = await fetch(
         `https://api.kucoin.com/api/v1/market/orderbook/level1?symbol=${symbol}`,

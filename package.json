@@ -1,5 +1,10 @@
 {
   "dependencies": {
+    "@grpc/grpc-js": "^1.12.6",
+    "@grpc/proto-loader": "^0.7.13",
+    "@triton-one/yellowstone-grpc": "^2.1.0",
+    "@uniswap/sdk-core": "^7.5.0",
+    "@uniswap/v4-sdk": "^1.19.2",
     "decimal.js": "^10.5.0"
   }
 }
