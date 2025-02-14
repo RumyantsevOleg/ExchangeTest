@@ -5,6 +5,7 @@
     "@triton-one/yellowstone-grpc": "^2.1.0",
     "@uniswap/sdk-core": "^7.5.0",
     "@uniswap/v4-sdk": "^1.19.2",
-    "decimal.js": "^10.5.0"
+    "decimal.js": "^10.5.0",
+    "web3": "^4.16.0"
   }
 }

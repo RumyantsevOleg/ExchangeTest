@@ -7,20 +7,21 @@ import {
 import { BinanceService } from "./binance/binance.service";
 import { KucoinService } from "./kucoin/kucoin.service";
 import { RaydiumService } from "./raydium/raydium.service";
+import { UniswapService } from "./uniswap/uniswap.service";
 
 @Injectable()
 export class ExchangeFacadeService implements IExchange {
   constructor(
     private binanceService: BinanceService,
     private kucoinService: KucoinService,
-    private raydiumService: RaydiumService,
+    private uniswapService: UniswapService,
   ) {}
 
   public async getAllRatesSorted(payload: EstimateRequest) {
     const arr = await Promise.all([
       this.binanceService.estimate(payload),
       this.kucoinService.estimate(payload),
-      this.raydiumService.estimate(payload),
+      this.uniswapService.estimate(payload),
     ]);
 
     return arr.sort((a, b) => a.outputAmount - b.outputAmount);
