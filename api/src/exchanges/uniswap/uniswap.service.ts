@@ -1,39 +1,49 @@
 import { Injectable } from "@nestjs/common";
-import { BaseExchange } from "../exchange.interface";
 import { Web3 } from "web3";
 import Decimal from "decimal.js";
-import { CurrencyNames, ExchangeNames } from "../../common/constants";
+import * as process from "node:process";
+import {
+  BaseExchange,
+  IBestPricePayload,
+  IBestPriceResult,
+} from "../exchange.interface";
+import { ExchangeNames } from "../../common/constants";
 
 const tokenAddresses = {
   BTC: "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
   USDT: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
-  ETH: "0xc02aaA39b223FE8D0A0E5C4F27eAD9083C756Cc2",
+  ETH: "0xEeeeeEeeeEeEeeEeEeEeeEeEeEeeEeEeEeEeE",
   SOL: "0xde9b56f3bb816f37b4f1b5081058465ed57826a3",
 };
+
+// Address
+const uniswapV4RouterAddress = "0x66a9893cc07d91d95644aedd05d03f95e1dba8af";
+
+// ABI
+const uniswapV4RouterABI = [
+  {
+    constant: true,
+    inputs: [
+      { name: "tokenA", type: "address" },
+      { name: "tokenB", type: "address" },
+    ],
+    name: "getAmountOut",
+    outputs: [{ name: "amountOut", type: "uint256" }],
+    payable: false,
+    stateMutability: "view",
+    type: "function",
+  },
+];
 
 @Injectable()
 export class UniswapService extends BaseExchange {
   private web3: Web3;
-  private uniswapV2FactoryAddress =
-    "0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f";
-  private uniswapV2FactoryABI = [
-    {
-      constant: true,
-      inputs: [
-        { name: "", type: "address" },
-        { name: "", type: "address" },
-      ],
-      name: "getPair",
-      outputs: [{ name: "", type: "address" }],
-      payable: false,
-      stateMutability: "view",
-      type: "function",
-    },
-  ];
 
   constructor() {
     super();
-    const infuraUrl = "wss://mainnet.infura.io/ws/v3/YOUR_INFURA_PROJECT_ID";
+
+    const INFURA_TOKEN = process.env.INFURA_TOKEN;
+    const infuraUrl = `wss://mainnet.infura.io/ws/v3/${INFURA_TOKEN}`;
     this.web3 = new Web3(
       new Web3.providers.WebsocketProvider(infuraUrl, {
         clientConfig: {
@@ -50,92 +60,42 @@ export class UniswapService extends BaseExchange {
     );
   }
 
-  private async getPairAddress(
+  private async getAmountOut(
     tokenA: string,
     tokenB: string,
-  ): Promise<string> {
-    const uniswapV2Factory = new this.web3.eth.Contract(
-      this.uniswapV2FactoryABI,
-      this.uniswapV2FactoryAddress,
-    );
-    return uniswapV2Factory.methods.getPair(tokenA, tokenB).call();
-  }
-
-  private async getReserves(pairAddress: string): Promise<[string, string]> {
-    const pairABI = [
-      {
-        constant: true,
-        inputs: [],
-        name: "getReserves",
-        outputs: [
-          { name: "reserve0", type: "uint112" },
-          { name: "reserve1", type: "uint112" },
-          { name: "blockTimestampLast", type: "uint32" },
-        ],
-        payable: false,
-        stateMutability: "view",
-        type: "function",
-      },
-    ];
-    const pairContract = new this.web3.eth.Contract(pairABI, pairAddress);
-    const reserves = await pairContract.methods.getReserves().call();
-    return [reserves["reserve0"], reserves["reserve1"]];
-  }
-
-  private async getTokenDecimals(tokenAddress: string): Promise<number> {
-    const tokenABI = [
-      {
-        constant: true,
-        inputs: [],
-        name: "decimals",
-        outputs: [{ name: "", type: "uint8" }],
-        payable: false,
-        stateMutability: "view",
-        type: "function",
-      },
-    ];
-    const tokenContract = new this.web3.eth.Contract(tokenABI, tokenAddress);
-    const decimals = await tokenContract.methods.decimals().call();
-    return decimals as any;
-  }
-
-  private async getTokenPrice(
-    tokenA: string,
-    tokenB: string,
+    inputAmount: number,
   ): Promise<Decimal> {
-    const pairAddress = await this.getPairAddress(tokenA, tokenB);
-    if (pairAddress === "0x0000000000000000000000000000000000000000") {
-      throw new Error("Pair does not exist");
-    }
-    const [reserveA, reserveB] = await this.getReserves(pairAddress);
-    const decimalsA = await this.getTokenDecimals(tokenA);
-    const decimalsB = await this.getTokenDecimals(tokenB);
-    const price = new Decimal(reserveB)
-      .div(new Decimal(reserveA))
-      .mul(new Decimal(10).pow(decimalsA - decimalsB));
-    return price;
+    const uniswapV4Router = new this.web3.eth.Contract(
+      uniswapV4RouterABI,
+      uniswapV4RouterAddress,
+    );
+    const amountOut = await uniswapV4Router.methods
+      .getAmountOut(tokenAddresses.BTC, tokenAddresses.USDT, 1)
+      .call();
+
+    return new Decimal(amountOut as any);
   }
 
-  protected async getBestPrice(payload: {
-    inputCurrency: CurrencyNames;
-    outputCurrency: CurrencyNames;
-  }): Promise<{
-    exchange: ExchangeNames;
-    price: Decimal;
-  }> {
+  protected async getBestPrice({
+    inputCurrency,
+    outputCurrency,
+    inputAmount = 1,
+  }: IBestPricePayload): Promise<IBestPriceResult> {
     try {
-      const tokenA = tokenAddresses[payload.inputCurrency];
-      const tokenB = tokenAddresses[payload.outputCurrency];
-      const price = await this.getTokenPrice(tokenA, tokenB);
-      console.log("price");
-      console.log(price);
+      const tokenA = tokenAddresses[inputCurrency];
+      const tokenB = tokenAddresses[outputCurrency];
+      if (!tokenA || !tokenB) {
+        throw new Error("Unknown token");
+      }
+
+      const price = await this.getAmountOut(tokenA, tokenB, inputAmount);
+
       return {
-        exchange: ExchangeNames.Uniswap,
         price,
+        exchange: ExchangeNames.Uniswap,
       };
     } catch (err) {
-      console.log("err");
-      console.log(err);
+      console.error("Error fetching data from Uniswap:", err);
       throw new Error("Error fetching data from Uniswap");
     }
   }
