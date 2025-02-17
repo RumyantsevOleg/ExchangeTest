@@ -4,8 +4,9 @@
     "@grpc/proto-loader": "^0.7.13",
     "@triton-one/yellowstone-grpc": "^2.1.0",
     "@uniswap/sdk-core": "^7.5.0",
-    "@uniswap/v4-sdk": "^1.19.2",
+    "@uniswap/v4-sdk": "^1.19.4",
     "decimal.js": "^10.5.0",
+    "ethers": "^6.13.5",
     "web3": "^4.16.0"
   }
 }

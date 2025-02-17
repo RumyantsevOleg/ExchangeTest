@@ -12,26 +12,33 @@ export interface EstimateResponse {
   outputAmount: number;
 }
 
+export interface IBestPriceResult {
+  price: Decimal;
+  exchange: ExchangeNames;
+}
+
+export interface IBestPricePayload {
+  inputCurrency: CurrencyNames;
+  outputCurrency: CurrencyNames;
+  inputAmount?: number;
+}
+
 export interface IExchange {
   estimate(payload: EstimateRequest): Promise<EstimateResponse>;
 }
 
 export class BaseExchange implements IExchange {
   // We are using polymorphism here
-  protected async getBestPrice(payload: {
-    inputCurrency: CurrencyNames;
-    outputCurrency: CurrencyNames;
-  }): Promise<{
-    exchange: ExchangeNames;
-    price: Decimal;
-  }> {
+  protected async getBestPrice(
+    payload: IBestPricePayload,
+  ): Promise<IBestPriceResult> {
     throw new Error("Method getBestPrice not implemented.");
   }
 
   public async estimate({
-    inputAmount = 1,
     inputCurrency,
     outputCurrency,
+    inputAmount = 1,
   }: EstimateRequest): Promise<EstimateResponse> {
     // TODO: Consider using Mark Price (price may vary based on trade volume).
 
